@@ -199,13 +199,17 @@ pub fn version() -> Result<Version> {
 /// like the git short hash and build date.
 pub fn version_meta() -> Result<VersionMeta> {
     let rustc = env::var_os("RUSTC").unwrap_or_else(|| OsString::from("rustc"));
-    let cmd = if let Some(wrapper) = env::var_os("RUSTC_WRAPPER").filter(|w| !w.is_empty()) {
+    let mut cmd = if let Some(wrapper) = env::var_os("RUSTC_WRAPPER").filter(|w| !w.is_empty()) {
         let mut cmd = Command::new(wrapper);
         cmd.arg(rustc);
         cmd
     } else {
         Command::new(rustc)
     };
+
+    if let Some(toolchain) = env::var_os("RUSTUP_TOOLCHAIN") {
+        cmd.env("RUSTUP_TOOLCHAIN", toolchain);
+    }
 
     VersionMeta::for_command(cmd)
 }
